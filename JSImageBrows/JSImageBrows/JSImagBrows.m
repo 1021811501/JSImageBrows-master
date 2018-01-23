@@ -233,14 +233,14 @@
     paragraphStyle.lineBreakMode=NSLineBreakByWordWrapping;
     NSDictionary* attributes =@{NSFontAttributeName:font,NSParagraphStyleAttributeName:paragraphStyle.copy};
     
-    CGSize labelSize = [title boundingRectWithSize:CGSizeMake(kScreenWidth-50, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading|NSStringDrawingTruncatesLastVisibleLine attributes:attributes context:nil].size;
+    CGSize labelSize = [title boundingRectWithSize:CGSizeMake([UIScreen mainScreen].bounds.size.width-50, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading|NSStringDrawingTruncatesLastVisibleLine attributes:attributes context:nil].size;
     
     labelSize.height=ceil(labelSize.height);
     labelSize.width=ceil(labelSize.width);
     
     self.layer.cornerRadius = 3;
     self.layer.masksToBounds = YES;
-    self.center = CGPointMake(kScreenWidth/2, kScreenHeight-90);
+    self.center = CGPointMake([UIScreen mainScreen].bounds.size.width/2.0, [UIScreen mainScreen].bounds.size.height-90);
     self.bounds = CGRectMake(0, 0, labelSize.width+20, labelSize.height+5);
     UIBlurEffect *effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
     UIView *effectView = [[UIVisualEffectView alloc] initWithEffect:effect];
