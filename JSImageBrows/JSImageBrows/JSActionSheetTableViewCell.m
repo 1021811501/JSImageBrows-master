@@ -21,19 +21,10 @@
     if (self) {
         self.backgroundColor = [UIColor clearColor];
         self.clipsToBounds = YES;
-        self.content = [[JSActionSheetTableViewCellContent alloc] initWithFrame:CGRectMake(0.0f,50.0f, [UIScreen mainScreen].bounds.size.width, 50.0f)];
+        self.content = [[JSActionSheetTableViewCellContent alloc] initWithFrame:CGRectMake(0.0f,0.0f, [UIScreen mainScreen].bounds.size.width, 50.0f)];
         [self.contentView addSubview:self.content];
     }
     return self;
-}
-
-
-- (void)show {
-    [UIView animateWithDuration:0.05f delay:0.0f options:UIViewAnimationOptionCurveEaseOut animations:^{
-        self.content.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, 50.0f);
-    } completion:^(BOOL finished) {
-
-    }];
 }
 
 - (void)setTitle:(NSString *)title {

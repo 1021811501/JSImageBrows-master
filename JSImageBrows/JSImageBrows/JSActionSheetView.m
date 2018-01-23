@@ -33,15 +33,11 @@ const CGFloat cellHeight = 50.0f;
 
         self.screenshotImageView = [[UIImageView alloc] initWithFrame:[UIScreen mainScreen].bounds];
         self.screenshotImageView.backgroundColor = [UIColor clearColor];
-//        self.screenshotImageView.image = [screenshot applyBlurWithRadius:10
-//                                                               tintColor:[UIColor colorWithRed:0.0f green:0.0f blue:0.0f alpha:0.3f]
-//                                                   saturationDeltaFactor:1.4
-//                                                               maskImage:nil];
         self.screenshotImageView.image = screenshot;
         [self addSubview:self.screenshotImageView];
 
         self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0f,
-                                                                       [UIScreen mainScreen].bounds.size.height  - cellHeight * self.titlesCount ,
+                                                                       [UIScreen mainScreen].bounds.size.height ,
                                                                        [UIScreen mainScreen].bounds.size.width,
                                                                        cellHeight * self.titlesCount)
                                                       style:UITableViewStylePlain];
@@ -59,14 +55,9 @@ const CGFloat cellHeight = 50.0f;
 - (void)show {
     UIWindow* window = [UIApplication sharedApplication].keyWindow;
     [window addSubview:self];
-
-    NSArray* cells = [self.tableView visibleCells];
-    for (NSInteger i = 0;i < cells.count;i ++) {
-        JSActionSheetTableViewCell* cell = cells[i];
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(i * 0.09f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [cell show];
-        });
-    }
+    [UIView animateWithDuration:0.2 animations:^{
+        self.tableView.frame = CGRectMake(0.0,[UIScreen mainScreen].bounds.size.height - cellHeight * self.titlesCount , [UIScreen mainScreen].bounds.size.width, cellHeight * self.titlesCount);
+    }];
 }
 
 

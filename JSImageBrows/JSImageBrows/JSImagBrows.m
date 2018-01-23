@@ -12,6 +12,7 @@
 #import "JSItemView.h"
 #import "JSActionSheetView.h"
 #import <AssetsLibrary/AssetsLibrary.h>
+#import "AppDelegate.h"
 @interface JSImagBrows ()<UICollectionViewDelegate,UICollectionViewDataSource,UICollectionViewDelegateFlowLayout,JSItemViewDelegate,JSActionSheetViewDelegate>
 //买玻璃效果
 @property(nonatomic,strong)UIImageView *blurImageView;
@@ -28,7 +29,6 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
     [self.view addSubview:self.blurImageView];
     [self.view addSubview:self.screenShotImageView];
     [self.view addSubview:self.collectionView];
@@ -48,7 +48,7 @@
         self.currentIndex = currentIndex;
         self.placeHolderImage = placeHolderImage;
         self.screenImage = [self screenShotImageFrom:[[UIApplication sharedApplication].delegate window]];
-        self.blurImage = [self.screenImage applyBlurWithRadius:20 tintColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:0.5f] saturationDeltaFactor:1.4 maskImage:nil];
+        self.blurImage = [self.screenImage applyBlurWithRadius:15 tintColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:0.3f] saturationDeltaFactor:1.4 maskImage:nil];
     }
     return self;
 }
@@ -93,7 +93,6 @@
 }
 
 - (void)jsItemViewLongPressAction:(JSItemView *)itemView {
-    NSLog(@"ddd");
     JSActionSheetView *sheetView = [[JSActionSheetView alloc] initTilesArray:@[@"保存图片",@"取消"] delegate:self];
     [sheetView show];
 }
@@ -107,8 +106,18 @@
         if (!cell.itemView.itemImageView.image) return;
         ALAuthorizationStatus status = [ALAssetsLibrary authorizationStatus];
         if (status == ALAuthorizationStatusRestricted || status == ALAuthorizationStatusDenied) {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"温馨提示" message:@"请到设置-隐私-图片 中打开权限" delegate:nil cancelButtonTitle:nil otherButtonTitles:@"确定", nil];
-            [alert show];
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"温馨提示" message:@"请到设置-隐私-图片 中打开权限" preferredStyle:UIAlertControllerStyleAlert];
+            UIAlertAction *cancleAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
+            UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
+                if ([[UIApplication sharedApplication] canOpenURL:url]) {
+                    [[UIApplication sharedApplication] openURL:url];
+                }
+            }];
+            [alert addAction:cancleAction];
+            [alert addAction:confirmAction];
+            [self presentViewController:alert animated:YES completion:nil];
+            return;
         }
          UIImageWriteToSavedPhotosAlbum(cell.itemView.itemImageView.image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
     }
@@ -172,6 +181,7 @@
         _collectionView.showsHorizontalScrollIndicator = NO;
         _collectionView.backgroundColor = [UIColor clearColor];
         _collectionView.pagingEnabled = YES;
+        [_collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:self.currentIndex inSection:0] atScrollPosition:(UICollectionViewScrollPositionNone) animated:YES];
     }
     return _collectionView;
 }
@@ -209,8 +219,7 @@
     return self;
     
 }
--(id)initWithTitle:(NSString *)title
-{
+-(id)initWithTitle:(NSString *)title{
     self = [super init];
     if (self) {
         self.dismissTime = 2;
@@ -219,34 +228,44 @@
     return self;
 }
 -(void)createToastWithTitle:(NSString *)title{
-    UIFont *font = [UIFont boldSystemFontOfSize:15];
-    NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
-    style.lineBreakMode = NSLineBreakByWordWrapping;
-    NSDictionary *dic = @{NSFontAttributeName:font,NSParagraphStyleAttributeName:style.copy};
-    CGSize labelSize = [title boundingRectWithSize:CGSizeMake([UIScreen mainScreen].bounds.size.width - 50, 100) options:NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading|NSStringDrawingTruncatesLastVisibleLine attributes:dic context:nil].size;
-    labelSize.height = ceil(labelSize.height);
-    labelSize.width = ceil(labelSize.width);
-    self.backgroundColor = [UIColor colorWithRed:192/255.0 green:182/255.0  blue:170/255.0  alpha:1];
+    UIFont *font = [UIFont boldSystemFontOfSize:15];;
+    NSMutableParagraphStyle* paragraphStyle = [[NSMutableParagraphStyle alloc]init];
+    paragraphStyle.lineBreakMode=NSLineBreakByWordWrapping;
+    NSDictionary* attributes =@{NSFontAttributeName:font,NSParagraphStyleAttributeName:paragraphStyle.copy};
+    
+    CGSize labelSize = [title boundingRectWithSize:CGSizeMake(kScreenWidth-50, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading|NSStringDrawingTruncatesLastVisibleLine attributes:attributes context:nil].size;
+    
+    labelSize.height=ceil(labelSize.height);
+    labelSize.width=ceil(labelSize.width);
+    
     self.layer.cornerRadius = 3;
     self.layer.masksToBounds = YES;
-    self.center = CGPointMake([UIScreen mainScreen].bounds.size.width/2.0, [UIScreen mainScreen].bounds.size.height - 90);
-    self.bounds = CGRectMake(0, 0, labelSize.width + 20, labelSize.height + 5);
-    UILabel *label = [[UILabel alloc] initWithFrame:self.bounds];
-    label.text = title;
-    label.numberOfLines = 0 ;
-    label.backgroundColor = [UIColor clearColor];
+    self.center = CGPointMake(kScreenWidth/2, kScreenHeight-90);
+    self.bounds = CGRectMake(0, 0, labelSize.width+20, labelSize.height+5);
+    UIBlurEffect *effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
+    UIView *effectView = [[UIVisualEffectView alloc] initWithEffect:effect];
+    effectView.frame = self.bounds;
+    [self addSubview:effectView];
+    
+    UILabel *label = [[UILabel alloc]initWithFrame:self.bounds];
+    label.font = font;
     label.textAlignment = NSTextAlignmentCenter;
-    label.textColor = [UIColor colorWithRed:77/255.0 green:77/255.0 blue:77/255.0 alpha:1];
+    label.layer.cornerRadius = 10;
+    label.numberOfLines = 0;
+    label.textColor = [UIColor whiteColor];
+    label.text = title;
     [self addSubview:label];
 }
 -(void)show{
-    [[[UIApplication sharedApplication].delegate window] addSubview:self];
+    AppDelegate *app = (AppDelegate *) [[UIApplication sharedApplication] delegate];
+    [app.window addSubview:self];
     [UIView animateWithDuration:self.dismissTime animations:^{
-        self.alpha = 0.0;
+        self.alpha = 0;
     } completion:^(BOOL finished) {
         [self removeFromSuperview];
     }];
 }
+
 @end
 
 
